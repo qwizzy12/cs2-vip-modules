@@ -11,6 +11,8 @@ CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 CGlobalVars* gpGlobals = nullptr;
 
+#define VIP_TAG_COOKIE "vip_clantag_state"
+
 PLUGIN_EXPOSE(VIPTag, g_VIPTag);
 
 bool VIPTag::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
@@ -104,20 +106,29 @@ static void FireNextLevelChangedEvent_Safe(bool dontBroadcast = false, bool forc
 	g_NextlevelLastFire = now;
 }
 
+static bool IsTagDisabledByCookie(int iSlot)
+{
+	if (!g_pVIPCore) return false;
+	const char* c = g_pVIPCore->VIP_GetClientCookie(iSlot, VIP_TAG_COOKIE);
+	return (c && !strcmp(c, "off"));
+}
+
 static bool VIP_TagToggleCallback(int iSlot, const char* szFeature, VIP_ToggleState eOld, VIP_ToggleState& eNew)
 {
 	CCSPlayerController* pc = CCSPlayerController::FromSlot(iSlot);
-	if (pc) {
-		if (eNew == DISABLED) {
-			pc->m_szClan() = CUtlSymbolLarge("\0");
-		} else if (eNew == ENABLED) {
+	if (eNew == DISABLED) {
+		if (g_pVIPCore) g_pVIPCore->VIP_SetClientCookie(iSlot, VIP_TAG_COOKIE, "off");
+		if (pc) pc->m_szClan() = CUtlSymbolLarge("\0");
+	} else if (eNew == ENABLED) {
+		if (g_pVIPCore) g_pVIPCore->VIP_SetClientCookie(iSlot, VIP_TAG_COOKIE, "on");
+		if (pc) {
 			const char* szClan = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "clantag");
 			if (szClan && strlen(szClan) > 0)
 				pc->m_szClan() = CUtlSymbolLarge(szClan);
 		}
-		if (g_pUtils)
-			g_pUtils->SetStateChanged(pc, "CCSPlayerController", "m_szClan");
 	}
+	if (pc && g_pUtils)
+		g_pUtils->SetStateChanged(pc, "CCSPlayerController", "m_szClan");
 	FireNextLevelChangedEvent_Safe(false, true);
 	return false;
 }
@@ -128,6 +139,12 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 
 	CCSPlayerController* pPlayerController = CCSPlayerController::FromSlot(iSlot);
 	if(!pPlayerController) return;
+
+	if (IsTagDisabledByCookie(iSlot)) {
+		pPlayerController->m_szClan() = CUtlSymbolLarge("\0");
+		return;
+	}
+
 	const char* szClan = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "clantag");
 	if(szClan && strlen(szClan) > 0)
 		pPlayerController->m_szClan() = CUtlSymbolLarge(szClan);
@@ -191,7 +208,7 @@ const char *VIPTag::GetLicense()
 
 const char *VIPTag::GetVersion()
 {
-	return "1.2";
+	return "1.2.1";
 }
 
 const char *VIPTag::GetDate()
