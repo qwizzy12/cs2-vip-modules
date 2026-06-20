@@ -65,6 +65,17 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 					pPlayerPawn->m_iMaxHealth() = atoi(sHealth);
 					pPlayerPawn->m_iHealth() = atoi(sHealth);
 				}
+				// Двойная установка здоровья в следующем кадре, т.к. движок сбрасывает m_iHealth после player_spawn
+				int iFixSlot = iSlot;
+				g_pUtils->NextFrame([iFixSlot]()
+				{
+					CCSPlayerController* pController = CCSPlayerController::FromSlot(iFixSlot);
+					if(!pController) return;
+					CCSPlayerPawn* pPawn = pController->m_hPlayerPawn();
+					if(!pPawn || !pPawn->IsAlive()) return;
+					if(pPawn->m_iHealth() < pPawn->m_iMaxHealth())
+						pPawn->m_iHealth() = pPawn->m_iMaxHealth();
+				});
 			}
 
 			const char* sArmor = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "armor");
