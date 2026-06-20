@@ -25,15 +25,12 @@ jobs:
           mkdir -p external
           cd external
           git clone --recursive --branch master --single-branch https://github.com/alliedmodders/metamod-source.git
-          git clone --recursive --branch cs2 --single-branch https://github.com/alliedmodders/hl2sdk.git hl2sdk-cs2
+          git clone --recursive --branch cs2 --single-branch https://github.com/Pisex/hl2sdk.git hl2sdk-cs2
           git clone https://github.com/pisex/SchemaEntity.git
 
-      - name: Patch SchemaEntity for newer HL2SDK
+      - name: Setup SchemaEntity
         run: |
           cp -r external/SchemaEntity VIP_BaseFunctions/SchemaEntity
-          sed -i 's/NetworkStateChanged_t/NetworkStateChangedData/g' VIP_BaseFunctions/SchemaEntity/schemasystem.cpp
-          sed -i 's/FL_PAWN_FAKECLIENT/FL_FAKECLIENT/g' VIP_BaseFunctions/SchemaEntity/CCSPlayerPawn.h
-          sed -i 's/FL_CONTROLLER_FAKECLIENT/FL_FAKECLIENT/g' VIP_BaseFunctions/SchemaEntity/CCSPlayerController.h
 
       - name: Build VIP_BaseFunctions
         run: |
