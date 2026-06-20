@@ -28,9 +28,13 @@ jobs:
           git clone --recursive --branch cs2 --single-branch https://github.com/alliedmodders/hl2sdk.git hl2sdk-cs2
           git clone https://github.com/pisex/SchemaEntity.git
 
-      - name: Build VIP_BaseFunctions
+      - name: Patch SchemaEntity for newer HL2SDK
         run: |
           cp -r external/SchemaEntity VIP_BaseFunctions/SchemaEntity
+          sed -i 's/NetworkStateChanged_t/NetworkStateChangedData/g' VIP_BaseFunctions/SchemaEntity/schemasystem.cpp
+
+      - name: Build VIP_BaseFunctions
+        run: |
           cd VIP_BaseFunctions/source
           mkdir build
           cd build
