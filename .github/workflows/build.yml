@@ -18,7 +18,10 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git g++ binutils python3 python3-pip
-          pip3 install ambuild2
+          git clone https://github.com/alliedmodders/ambuild.git
+          cd ambuild
+          pip3 install .
+          cd ..
           mkdir -p external
           cd external
           git clone --recursive --branch master --single-branch https://github.com/alliedmodders/metamod-source.git
