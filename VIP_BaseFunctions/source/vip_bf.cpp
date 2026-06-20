@@ -8,25 +8,24 @@ vip_bf g_vip_bf;
 IUtilsApi* g_pUtils;
 IVIPApi* g_pVIPCore;
 
-IVEngineServer2* engine = nullptr;
+IVengineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
-int iRoundMin;
+int cRoundMin;
 
 PLUGIN_EXPOSE(vip_bf, g_vip_bf);
-bool vip_bf::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
+bool vip_bf::Load(PluginId id, ISMmAPI *ismm, char *error, size_t maxlen, bool late)
 {
-	PLUGIN_SAVEVARS();
+	PLUGIN_SAVEVAR();
 	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
-
 	{
-		KeyValues* hKv = new KeyValues("VIP");
+		CKeyValues* hKv = new CKeyValues("VIP");
 		const char *pszPath = "addons/configs/vip/vip_bf.ini";
 
-		if (!hKv->LoadFromFile(g_pFullFileSystem, pszPath))
+		if (!(hKv->LoadFromFile(g_pFullFileSystem, pszPath))
 		{
 			Warning("Failed to load %s\n", pszPath);
 			return false;
@@ -65,17 +64,6 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 					pPlayerPawn->m_iMaxHealth() = atoi(sHealth);
 					pPlayerPawn->m_iHealth() = atoi(sHealth);
 				}
-				// Двойная установка здоровья в следующем кадре, т.к. движок сбрасывает m_iHealth после player_spawn
-				int iFixSlot = iSlot;
-				g_pUtils->NextFrame([iFixSlot]()
-				{
-					CCSPlayerController* pController = CCSPlayerController::FromSlot(iFixSlot);
-					if(!pController) return;
-					CCSPlayerPawn* pPawn = pController->m_hPlayerPawn();
-					if(!pPawn || !pPawn->IsAlive()) return;
-					if(pPawn->m_iHealth() < pPawn->m_iMaxHealth())
-						pPawn->m_iHealth() = pPawn->m_iMaxHealth();
-				});
 			}
 
 			const char* sArmor = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "armor");
@@ -106,7 +94,7 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 					pMoneyServices->m_iAccount() = atoi(sMoney);
 			}
 
-			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
+			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->mpItemServices());
 			if(!pItemServices) return;
 			int bHelmet = g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "helmet");
 			if (bHelmet)
