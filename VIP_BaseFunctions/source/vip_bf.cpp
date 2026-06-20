@@ -66,21 +66,16 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 					pPlayerPawn->m_iHealth() = atoi(sHealth);
 				}
 			}
-			// Anti-engine-reset fix: store desired health, re-apply next frame
-			int iDesiredHealth = atoi(sHealth);
-			if(sHealth[0] == '+')
-			{
-				iDesiredHealth = pPlayerPawn->m_iHealth() + atoi(sHealth + 1);
-			}
+			// Re-apply health after engine reset (use timer for next tick)
 			int iSlotCopy = iSlot;
-			int iHP = iDesiredHealth;
-			g_pUtils->NextFrame([iSlotCopy, iHP]()
+			g_pUtils->CreateTimer(0.1f, [iSlotCopy]() -> float
 			{
 				CCSPlayerController* pController = CCSPlayerController::FromSlot(iSlotCopy);
-				if(!pController) return;
+				if(!pController) return -1.0f;
 				CCSPlayerPawn* pPawn = pController->m_hPlayerPawn();
-				if(!pPawn || !pPawn->IsAlive()) return;
-				pPawn->m_iHealth() = iHP;
+				if(!pPawn || !pPawn->IsAlive()) return -1.0f;
+				pPawn->m_iHealth() = pPawn->m_iMaxHealth();
+				return -1.0f;
 			});
 
 			const char* sArmor = g_pVIPCore->VIP_GetClientFeatureString(iSlot, "armor");
