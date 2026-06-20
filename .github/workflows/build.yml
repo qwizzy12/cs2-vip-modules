@@ -28,6 +28,10 @@ jobs:
           git clone --recursive --branch cs2 --single-branch https://github.com/Pisex/hl2sdk.git hl2sdk-cs2
           git clone https://github.com/pisex/SchemaEntity.git
 
+      - name: Patch SDK const const bug
+        run: |
+          sed -i 's/const const char */const char */g' external/hl2sdk-cs2/public/tier1/keyvalues3.h
+
       - name: Setup SchemaEntity
         run: |
           cp -r external/SchemaEntity VIP_BaseFunctions/SchemaEntity
