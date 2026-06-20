@@ -8,24 +8,25 @@ vip_bf g_vip_bf;
 IUtilsApi* g_pUtils;
 IVIPApi* g_pVIPCore;
 
-IVengineServer2* engine = nullptr;
+IVEngineServer2* engine = nullptr;
 CGameEntitySystem* g_pGameEntitySystem = nullptr;
 CEntitySystem* g_pEntitySystem = nullptr;
 
-int cRoundMin;
+int iRoundMin;
 
 PLUGIN_EXPOSE(vip_bf, g_vip_bf);
-bool vip_bf::Load(PluginId id, ISMmAPI *ismm, char *error, size_t maxlen, bool late)
+bool vip_bf::Load(PluginId id, ISmmAPI *ismm, char *error, size_t maxlen, bool late)
 {
-	PLUGIN_SAVEVAR();
+	PLUGIN_SAVEVARS();
 	GET_V_IFACE_ANY(GetEngineFactory, g_pSchemaSystem, ISchemaSystem, SCHEMASYSTEM_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetEngineFactory, engine, IVEngineServer2, SOURCE2ENGINETOSERVER_INTERFACE_VERSION);
 	GET_V_IFACE_CURRENT(GetFileSystemFactory, g_pFullFileSystem, IFileSystem, FILESYSTEM_INTERFACE_VERSION);
+
 	{
-		CKeyValues* hKv = new CKeyValues("VIP");
+		KeyValues* hKv = new KeyValues("VIP");
 		const char *pszPath = "addons/configs/vip/vip_bf.ini";
 
-		if (!(hKv->LoadFromFile(g_pFullFileSystem, pszPath))
+		if (!hKv->LoadFromFile(g_pFullFileSystem, pszPath))
 		{
 			Warning("Failed to load %s\n", pszPath);
 			return false;
@@ -94,7 +95,7 @@ void VIP_OnPlayerSpawn(int iSlot, int iTeam, bool bIsVIP)
 					pMoneyServices->m_iAccount() = atoi(sMoney);
 			}
 
-			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->mpItemServices());
+			CCSPlayer_ItemServices* pItemServices = static_cast<CCSPlayer_ItemServices*>(pPlayerPawn->m_pItemServices());
 			if(!pItemServices) return;
 			int bHelmet = g_pVIPCore->VIP_GetClientFeatureBool(iSlot, "helmet");
 			if (bHelmet)
